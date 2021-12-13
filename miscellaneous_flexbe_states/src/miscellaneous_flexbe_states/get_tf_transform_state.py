@@ -57,7 +57,7 @@ class GetTFTransformState(EventState):
 
 		target_frame = userdata.frames[0]
 		source_frame = userdata.frames[1]
-		Logger.loginfo('Getting transform for target = %s, source = %s' % (target_frame, source_frame))
+		#Logger.loginfo('Getting transform for target = %s, source = %s' % (target_frame, source_frame))
 
 		try:
 			now = rospy.Time(0)
@@ -80,4 +80,3 @@ class GetTFTransformState(EventState):
 			self._failed = True
 			userdata.transform = None
 			return
-		

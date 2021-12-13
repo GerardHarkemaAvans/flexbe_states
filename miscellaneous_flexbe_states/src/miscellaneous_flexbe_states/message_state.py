@@ -53,16 +53,20 @@ class MessageState(EventState):
 
 	'''
 
-	def __init__(self):
+	def __init__(self, severity=Logger.REPORT_HINT, header=""):
 		# See example_state.py for basic explanations.
 		super(MessageState, self).__init__(outcomes = ['continue'], input_keys=['message'])
 
+		self._severity = severity
+		self._header = header
 
 
 	def execute(self, userdata):
 		# While this state is active, check if the action has been finished and evaluate the result.
 
-		rospy.loginfo(userdata.message)
+		if len(self._header):
+			Logger.log(self._header, self._severity)
+		Logger.log(userdata.message, self._severity)
 
 		return 'continue'
 

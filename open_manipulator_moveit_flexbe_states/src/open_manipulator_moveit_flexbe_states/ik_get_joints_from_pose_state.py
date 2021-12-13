@@ -173,7 +173,7 @@ class IkGetJointsFromPose(EventState):
     res_q = quaternion_multiply(q_rot, q_orig)
     target_pose.pose.orientation = geometry_msgs.msg.Quaternion(*res_q)
 
-    rospy.loginfo(target_pose)
+    #rospy.loginfo(target_pose)
 
     # use ik service to compute joint_values
     self._srv_req = GetPositionIKRequest()
