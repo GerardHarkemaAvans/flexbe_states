@@ -87,7 +87,7 @@ class IkGetJointsFromPose(EventState):
 
   def __init__(self, joint_names, time_out=5.0):
     # Declare outcomes, input_keys, and output_keys by calling the super constructor with the corresponding arguments.
-    super(IkGetJointsFromPose, self).__init__(outcomes = ['continue', 'failed', 'time_out'], input_keys = ['move_group', 'move_group_prefix', 'tool_link','pose', 'offset', 'rotation'], output_keys = ['joint_values','joint_names'])
+    super(IkGetJointsFromPose, self).__init__(outcomes = ['continue', 'failed', 'time_out'], input_keys = ['group_name', 'move_group_prefix', 'tool_link','pose', 'offset', 'rotation'], output_keys = ['joint_values','joint_names'])
 
     self._joint_names = joint_names
     self._wait  = time_out
@@ -131,8 +131,8 @@ class IkGetJointsFromPose(EventState):
     # This method is called when the state becomes active, i.e. a transition from another state to this one is taken.
     # It is primarily used to start actions which are associated with this state.
 
-    self._move_group = userdata.move_group
-    self._move_group_prefix = userdata.move_group_prefix
+    self._group_name = userdata.group_name
+    self._group_name_prefix = userdata.move_group_prefix
     self._tool_link = userdata.tool_link
 
     self._offset = userdata.offset
@@ -173,12 +173,14 @@ class IkGetJointsFromPose(EventState):
     res_q = quaternion_multiply(q_rot, q_orig)
     target_pose.pose.orientation = geometry_msgs.msg.Quaternion(*res_q)
 
-    #rospy.loginfo(target_pose)
+    rospy.loginfo(target_pose)
 
     # use ik service to compute joint_values
     self._srv_req = GetPositionIKRequest()
-    self._srv_req.ik_request.group_name = self._move_group
-    self._srv_req.ik_request.robot_state.joint_state = rospy.wait_for_message(self._move_group_prefix + '/joint_states', sensor_msgs.msg.JointState)
+    self._srv_req.ik_request.group_name = self._group_name
+    self._srv_req.ik_request.robot_state.joint_state = rospy.wait_for_message(self._group_name_prefix + '/joint_states', sensor_msgs.msg.JointState)
+    rospy.loginfo(self._srv_req.ik_request.robot_state.joint_state)
+
     self._srv_req.ik_request.ik_link_name = self._tool_link  # TODO: this needs to be a parameter
     self._srv_req.ik_request.pose_stamped = target_pose
     self._srv_req.ik_request.avoid_collisions = True
