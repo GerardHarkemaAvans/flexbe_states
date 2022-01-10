@@ -166,10 +166,8 @@ class IkGetJointsFromPose(EventState):
     # the grasp pose is defined as being located on top of the item
     target_pose.pose.position.z += self._offset
 
-		#q_orig = [target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w]
+    q_orig = [target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w]
 
-    # assume orientation
-    q_orig = [0, 0, 0, 1]
     q_rot = quaternion_from_euler(0, self._rotation, 0)
 
     res_q = quaternion_multiply(q_rot, q_orig)
