@@ -64,7 +64,7 @@ import sensor_msgs
 '''
 Created on Sep 5 2018
 @author: HRWROS mooc instructors
-Adapted to open manipulator by: Gerard Harkema
+Adapted to open manipulator, Universal Robots & Niryo Ned  by: Gerard Harkema
 This state provides the joint configuration if a geven pose
 '''
 
@@ -72,7 +72,7 @@ class IkGetJointsFromPose(EventState):
   '''
   Computes the joint configuration needed to grasp the part given its pose.
   -- time_out    float    Value to wait on transform
-  -- joint_names    string[]  Names of the joints
+  -- ignore_orientation    bool  Ignores the orientation of the pose
   ># offset    float    Some offset
   ># rotation    float    Rotation?
   ># move_group         string    Name of the group for which to compute the joint values for grasping.
@@ -85,14 +85,14 @@ class IkGetJointsFromPose(EventState):
   <= failed         otherwise.
   '''
 
-  def __init__(self, joint_names, time_out=5.0):
+  def __init__(self, time_out=5.0, ignore_orientation=True):
     # Declare outcomes, input_keys, and output_keys by calling the super constructor with the corresponding arguments.
     super(IkGetJointsFromPose, self).__init__(outcomes = ['continue', 'failed', 'time_out'], input_keys = ['group_name', 'move_group_prefix', 'tool_link','pose', 'offset', 'rotation'], output_keys = ['joint_values','joint_names'])
 
-    self._joint_names = joint_names
     self._wait  = time_out
     self._time_out_reached = False
     self._failed = False
+    self._ignore_orientation = ignore_orientation
     #self._srv_result.error_code.val = 0
 
 
@@ -116,12 +116,9 @@ class IkGetJointsFromPose(EventState):
     if int(self._srv_result.error_code.val) == 1:
       sol_js = self._srv_result.solution.joint_state
 
-      joint_names = self._joint_names
+      userdata.joint_values = copy.deepcopy(sol_js.position)
+      userdata.joint_names = copy.deepcopy(sol_js.name)
 
-      jname_idx = [sol_js.name.index(jname) for jname in joint_names]
-      j_angles = map(sol_js.position.__getitem__, jname_idx)
-      userdata.joint_values = copy.deepcopy(j_angles)
-      userdata.joint_names = copy.deepcopy(joint_names)
       return 'continue'
     else:
       rospy.loginfo("IkGetJointsFromPose::Execute state - failed.  Returned: %d", int(self._srv_result.error_code.val) )
@@ -166,7 +163,10 @@ class IkGetJointsFromPose(EventState):
     # the grasp pose is defined as being located on top of the item
     target_pose.pose.position.z += self._offset
 
-    q_orig = [target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w]
+    if self._ignore_orientation:
+      q_orig = quaternion_from_euler(0, 0, 0)
+    else:    
+      q_orig = [target_pose.pose.orientation.x, target_pose.pose.orientation.y, target_pose.pose.orientation.z, target_pose.pose.orientation.w]
 
     q_rot = quaternion_from_euler(0, self._rotation, 0)
 
